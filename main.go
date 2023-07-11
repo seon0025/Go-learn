@@ -1,20 +1,13 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/seon0025/learngo/mydict"
-)
+import "fmt"
 
 func main() {
-	dictionary := mydict.Dictionary{}
-	baseWord := "hello"
-	dictionary.Add(baseWord, "First")
-	dictionary.Search(baseWord)
-	dictionary.Delete(baseWord)
-	word, err := dictionary.Search(baseWord)
-	if err != nil {
-		fmt.Println(err)
+	urls := []string{
+		"https://www.google.com/",
 	}
-	fmt.Println(word)
+
+	for url := range urls {
+		fmt.Println(url)
+	}
 }
