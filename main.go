@@ -1,21 +1,22 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"time"
 )
 
-var errRequestFailed = errors.New("request failed")
-
 func main() {
-	go count("nico")
-	count("seon")
+	c := make(chan string)
+	people := [2]string{"nico", "seon"}
+	for _, person := range people {
+		go isGood(person, c)
+	}
+	for i := 0; i < len(people); i++ {
+		fmt.Println(<-c)
+	}
 }
 
-func count(person string) {
-	for i := 0; i < 10; i++ {
-		fmt.Println(person, "is good", i)
-		time.Sleep(time.Second)
-	}
+func isGood(person string, c chan string) {
+	time.Sleep(time.Second * 10)
+	c <- person + " is good"
 }
