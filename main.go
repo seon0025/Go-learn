@@ -3,29 +3,19 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net/http"
+	"time"
 )
 
 var errRequestFailed = errors.New("request failed")
 
 func main() {
-	urls := []string{
-		"https://www.google.com/",
-		"https://www.naver.com/",
-		"https://www.daum.net/",
-	}
-
-	for _, url := range urls {
-		hitURL(url)
-
-	}
+	go count("nico")
+	count("seon")
 }
 
-func hitURL(url string) error {
-	fmt.Println("checking:", url)
-	resp, err := http.Get(url)
-	if err == nil || resp.StatusCode >= 400 {
-		return errRequestFailed
+func count(person string) {
+	for i := 0; i < 10; i++ {
+		fmt.Println(person, "is good", i)
+		time.Sleep(time.Second)
 	}
-	return nil
 }
