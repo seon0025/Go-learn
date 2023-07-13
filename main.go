@@ -1,22 +1,46 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"time"
+	"net/http"
 )
 
+type requestResult struct {
+	url    string
+	status string
+}
+
+var errRequestFailed = errors.New("request failed")
+
 func main() {
-	c := make(chan string)
-	people := [2]string{"nico", "seon"}
-	for _, person := range people {
-		go isGood(person, c)
+	results := make(map[string]string)
+	c := make(chan requestResult)
+	urls := []string{
+		"https://www.naver.com",
+		"https://www.google.com",
+		"https://www.amazon.com",
 	}
-	for i := 0; i < len(people); i++ {
-		fmt.Println(<-c)
+	for _, url := range urls {
+		go hitURL(url, c)
+	}
+
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+	}
+
+	for url, status := range results{
+		fmt.Println(url, status)
 	}
 }
 
-func isGood(person string, c chan string) {
-	time.Sleep(time.Second * 10)
-	c <- person + " is good"
+func hitURL(url string, c chan<- requestResult) {
+	resp, err := http.Get(url)
+	status := "OK"
+	if err != nil || resp.StatusCode >= 400 {
+		status = "FAILED"
+	} else {
+		c <- requestResult{url: url, status: status}
+	}
 }
