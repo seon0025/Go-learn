@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -18,10 +20,6 @@ type extractedJob struct {
 	company  string
 }
 
-type jobResult struct {
-	
-}
-
 var baseURL string = "https://www.saramin.co.kr/zf_user/search/recruit?&searchword=python"
 
 func main() {
@@ -31,7 +29,8 @@ func main() {
 		extractedJob := getPage(i)
 		jobs = append(jobs, extractedJob...)
 	}
-	fmt.Println(jobs)
+	writeJobs(jobs)
+	fmt.Println("Done, extracted : ", len(jobs))
 }
 
 func getPage(page int) []extractedJob {
@@ -63,6 +62,24 @@ func extracJob(s *goquery.Selection) extractedJob {
 
 func cleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w:= csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string {"LINK", "TITLE", "LOCATION", "DATE", "COMPANY"}
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs{
+		jobSlice := []string{"https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx=" + job.id, job.title, job.location, job.date, job.company}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+	}
 }
 
 func getPages() int {
