@@ -35,6 +35,7 @@ func main() {
 
 func getPage(page int) []extractedJob {
 	var jobs []extractedJob
+	c := make(chan extractedJob)
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page) + "&recruitSort=relation&recruitPageCount=40&inner_com_type=&company_cd=0%2C1%2C2%2C3%2C4%2C5%2C6%2C7%2C9%2C10&show_applied=&quick_apply=&except_read=&ai_head_hunting=&mainSearch=n"
 	fmt.Println("requesting: ", pageURL)
 	res, err := http.Get(pageURL)
@@ -45,19 +46,18 @@ func getPage(page int) []extractedJob {
 	checkErr(err)
 	searchCards := doc.Find(".item_recruit")
 	searchCards.Each(func(i int, s *goquery.Selection) {
-		job := extracJob(s)
-		jobs = append(jobs, job)
+		go extractJob(s, c)
 	})
 	return jobs
 }
 
-func extracJob(s *goquery.Selection) extractedJob {
+func extractJob(s *goquery.Selection, c chan<- extractedJob) extractedJob {
 	id, _ := s.Attr("value")
 	title := cleanString(s.Find(".job_tit>a").Text())
 	location := cleanString(s.Find(".job_condition>span>a").Text())
 	company := cleanString(s.Find(".corp_name>a").Text())
 	date := cleanString(s.Find(".job_date>span").Text())
-	return extractedJob{id: id, title: title, location: location, company: company, date: date}
+	return c <- extractedJob{id: id, title: title, location: location, company: company, date: date}
 }
 
 func cleanString(str string) string {
