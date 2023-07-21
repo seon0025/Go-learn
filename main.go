@@ -48,6 +48,10 @@ func getPage(page int) []extractedJob {
 	searchCards.Each(func(i int, s *goquery.Selection) {
 		go extractJob(s, c)
 	})
+
+	for i := 0; i<len(searchCards); i++{
+		job := <- c
+	}
 	return jobs
 }
 
