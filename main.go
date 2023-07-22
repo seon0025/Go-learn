@@ -49,19 +49,20 @@ func getPage(page int) []extractedJob {
 		go extractJob(s, c)
 	})
 
-	for i := 0; i<len(searchCards); i++{
-		job := <- c
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
 	}
 	return jobs
 }
 
-func extractJob(s *goquery.Selection, c chan<- extractedJob) extractedJob {
+func extractJob(s *goquery.Selection, c chan<- extractedJob) {
 	id, _ := s.Attr("value")
 	title := cleanString(s.Find(".job_tit>a").Text())
 	location := cleanString(s.Find(".job_condition>span>a").Text())
 	company := cleanString(s.Find(".corp_name>a").Text())
 	date := cleanString(s.Find(".job_date>span").Text())
-	return c <- extractedJob{id: id, title: title, location: location, company: company, date: date}
+	c <- extractedJob{id: id, title: title, location: location, company: company, date: date}
 }
 
 func cleanString(str string) string {
@@ -72,14 +73,14 @@ func writeJobs(jobs []extractedJob) {
 	file, err := os.Create("jobs.csv")
 	checkErr(err)
 
-	w:= csv.NewWriter(file)
+	w := csv.NewWriter(file)
 	defer w.Flush()
 
-	headers := []string {"LINK", "TITLE", "LOCATION", "DATE", "COMPANY"}
+	headers := []string{"LINK", "TITLE", "LOCATION", "DATE", "COMPANY"}
 	wErr := w.Write(headers)
 	checkErr(wErr)
 
-	for _, job := range jobs{
+	for _, job := range jobs {
 		jobSlice := []string{"https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx=" + job.id, job.title, job.location, job.date, job.company}
 		jwErr := w.Write(jobSlice)
 		checkErr(jwErr)
